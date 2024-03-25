@@ -17,35 +17,33 @@
  * under the License.
  */
 
-package org.netbeans.modules.dashboard;
+package org.netbeans.modules.ide.dashboard;
 
 import java.util.List;
 import org.netbeans.spi.dashboard.DashboardDisplayer;
-import org.openide.util.Lookup;
+import org.netbeans.spi.dashboard.DashboardWidget;
+import org.netbeans.spi.dashboard.WidgetElement;
 
 /**
  *
  */
-public class DefaultDashboardDisplayer implements DashboardDisplayer {
-    
-    private static final DefaultDashboardDisplayer INSTANCE = new DefaultDashboardDisplayer();
+public class TestWidget implements DashboardWidget {
 
-    private DefaultDashboardDisplayer() {
-        
-    }
-    
     @Override
-    public Lookup getLookup() {
-        return Lookup.EMPTY;
+    public String title(DashboardDisplayer.Panel panel) {
+        return panel.id();
     }
 
     @Override
-    public void show(List<WidgetReference> widgets) {
-        DashboardTopComponent.show(widgets);
+    public List<WidgetElement> elements(DashboardDisplayer.Panel panel) {
+        return List.of(WidgetElement.text(
+        """
+        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
+        """
+//        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
+//        """
+        ));
     }
-    
-    public static DefaultDashboardDisplayer getInstance() {
-        return INSTANCE;
-    }
+
 
 }

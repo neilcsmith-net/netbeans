@@ -24,7 +24,6 @@ import java.util.List;
 import java.util.Objects;
 import javax.swing.Box;
 import javax.swing.JComponent;
-import javax.swing.JLabel;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
 import org.netbeans.spi.dashboard.DashboardDisplayer;
@@ -56,14 +55,15 @@ final class WidgetPanel extends JPanel {
         attachWidget();
     }
     
-    void attachWidget() {
+    private void attachWidget() {
         widget.attach(accessor);
         reconfigure();
     }
     
-    void detachWidget() {
-        widget.detach(accessor);
-    }
+//    TODO : when customization added
+//    void detachWidget() {
+//        widget.detach(accessor);
+//    }
     
     void notifyShowing() {
         widget.showing(accessor);
@@ -91,10 +91,10 @@ final class WidgetPanel extends JPanel {
         }
         JScrollPane scrollPane = new JScrollPane(
                 JScrollPane.VERTICAL_SCROLLBAR_AS_NEEDED,
-                JScrollPane.HORIZONTAL_SCROLLBAR_AS_NEEDED);
+                JScrollPane.HORIZONTAL_SCROLLBAR_NEVER);
         add(scrollPane, BorderLayout.CENTER);
         Box container = Box.createVerticalBox();
-        scrollPane.add(container);
+        scrollPane.setViewportView(container);
         for (WidgetElement element : elements) {
             JComponent cmp = WidgetComponents.componentFor(element);
             if (cmp != null) {

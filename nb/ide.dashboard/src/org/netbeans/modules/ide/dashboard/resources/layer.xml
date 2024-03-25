@@ -20,6 +20,40 @@
 
 -->
 <!DOCTYPE filesystem PUBLIC "-//NetBeans//DTD Filesystem 1.2//EN" "http://www.netbeans.org/dtds/filesystem-1_2.dtd">
-<filesystem>  
+<filesystem>
 
+  <folder name="Dashboard">
+    <folder name="Main">
+      <file name="Widget1.shadow">
+        <attr name="originalFile" stringvalue="Dashboard/Widgets/TestWidget.instance"/>
+        <attr name="position" intvalue="100"/>
+      </file>
+      <file name="Widget2.shadow">
+        <attr name="originalFile" stringvalue="Dashboard/Widgets/TestWidget.instance"/>
+        <attr name="position" intvalue="200"/>
+      </file>
+      <file name="Widget3.shadow">
+        <attr name="originalFile" stringvalue="Dashboard/Widgets/TestWidget.instance"/>
+        <attr name="position" intvalue="300"/>
+      </file>
+      <file name="Widget4.shadow">
+        <attr name="originalFile" stringvalue="Dashboard/Widgets/TestWidget.instance"/>
+        <attr name="position" intvalue="400"/>
+      </file>
+      <file name="Widget5.shadow">
+        <attr name="originalFile" stringvalue="Dashboard/Widgets/TestWidget.instance"/>
+        <attr name="position" intvalue="500"/>
+      </file>
+      <file name="Widget6.shadow">
+        <attr name="originalFile" stringvalue="Dashboard/Widgets/TestWidget.instance"/>
+        <attr name="position" intvalue="600"/>
+      </file>
+    </folder>
+    <folder name="Widgets">
+      <file name="TestWidget.instance">
+        <attr name="instanceClass" stringvalue="org.netbeans.modules.ide.dashboard.TestWidget"/>
+      </file>
+    </folder>
+  </folder>
+  
 </filesystem>

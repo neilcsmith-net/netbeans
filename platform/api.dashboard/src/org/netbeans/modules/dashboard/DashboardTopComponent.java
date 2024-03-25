@@ -18,22 +18,23 @@
  */
 package org.netbeans.modules.dashboard;
 
+import java.util.List;
 import org.netbeans.api.settings.ConvertAsProperties;
-import org.openide.awt.ActionID;
-import org.openide.awt.ActionReference;
+import org.netbeans.spi.dashboard.DashboardDisplayer;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
+import org.openide.windows.WindowManager;
 
 /**
- * Default Dashboard displayer top component.
+ * Default Dashboard Displayer top component.
  */
 @ConvertAsProperties(
         dtd = "-//org.netbeans.modules.dashboard//Dashboard//EN",
         autostore = false
 )
 @TopComponent.Description(
-        preferredID = "DashboardTopComponent",
-        persistenceType = TopComponent.PERSISTENCE_ALWAYS
+        preferredID = "DashboardDisplayer",
+        persistenceType = TopComponent.PERSISTENCE_NEVER
 )
 @TopComponent.Registration(mode = "editor", openAtStartup = false, position = 0)
 @Messages({
@@ -42,11 +43,15 @@ import org.openide.util.NbBundle.Messages;
 })
 public final class DashboardTopComponent extends TopComponent {
 
+    private static final String ID = "DashboardDisplayer";
+
+    private List<DashboardDisplayer.WidgetReference> widgetRefs;
+    private DashboardPanel dashboardPanel;
+
     public DashboardTopComponent() {
         initComponents();
         setName(Bundle.CTL_DashboardTopComponent());
         setToolTipText(Bundle.HINT_DashboardTopComponent());
-
     }
 
     /**
@@ -59,12 +64,17 @@ public final class DashboardTopComponent extends TopComponent {
 
         scrollPane = new javax.swing.JScrollPane();
         dashContainer = new javax.swing.JPanel();
+        emptyLabel = new javax.swing.JLabel();
 
         setLayout(new java.awt.BorderLayout());
 
         scrollPane.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
 
         dashContainer.setLayout(new java.awt.GridBagLayout());
+
+        org.openide.awt.Mnemonics.setLocalizedText(emptyLabel, org.openide.util.NbBundle.getMessage(DashboardTopComponent.class, "DashboardTopComponent.emptyLabel.text")); // NOI18N
+        dashContainer.add(emptyLabel, new java.awt.GridBagConstraints());
+
         scrollPane.setViewportView(dashContainer);
 
         add(scrollPane, java.awt.BorderLayout.CENTER);
@@ -72,16 +82,21 @@ public final class DashboardTopComponent extends TopComponent {
 
     // Variables declaration - do not modify//GEN-BEGIN:variables
     private javax.swing.JPanel dashContainer;
+    private javax.swing.JLabel emptyLabel;
     private javax.swing.JScrollPane scrollPane;
     // End of variables declaration//GEN-END:variables
     @Override
     public void componentOpened() {
-        // TODO add custom code on component opening
+        if (dashboardPanel != null) {
+            dashboardPanel.notifyShowing();
+        }
     }
 
     @Override
     public void componentClosed() {
-        // TODO add custom code on component closing
+        if (dashboardPanel != null) {
+            dashboardPanel.notifyHidden();
+        }
     }
 
     void writeProperties(java.util.Properties p) {
@@ -95,4 +110,43 @@ public final class DashboardTopComponent extends TopComponent {
         String version = p.getProperty("version");
         // TODO read your settings according to their version
     }
+
+    private void installWidgets(List<DashboardDisplayer.WidgetReference> widgetRefs) {
+        if (this.widgetRefs != null) {
+            if (this.widgetRefs.equals(widgetRefs)) {
+                return;
+            }
+        }
+        this.widgetRefs = List.copyOf(widgetRefs);
+        // TODO allow panel to be reconfigured at runtime, and detach removed widgets
+        this.dashboardPanel = new DashboardPanel(DefaultDashboardDisplayer.getInstance(), widgetRefs);
+        dashContainer.removeAll();
+        dashContainer.add(this.dashboardPanel);
+    }
+
+    static void show(List<DashboardDisplayer.WidgetReference> widgetRefs) {
+        DashboardTopComponent dashTC = find();
+        if (dashTC == null) {
+            return;
+        }
+        if (widgetRefs.isEmpty()) {
+            dashTC.close();
+            return;
+        }
+        dashTC.installWidgets(widgetRefs);
+        if (!dashTC.isOpened()) {
+            dashTC.openAtTabPosition(0);
+        }
+        dashTC.requestActive();
+    }
+
+    private static DashboardTopComponent find() {
+        TopComponent tc = WindowManager.getDefault().findTopComponent(ID);
+        if (tc instanceof DashboardTopComponent dashTC) {
+            return dashTC;
+        } else {
+            return null;
+        }
+    }
+
 }

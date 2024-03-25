@@ -20,10 +20,15 @@ package org.netbeans.modules.dashboard;
 
 import java.awt.Container;
 import java.awt.Dimension;
-import java.awt.FlowLayout;
+import java.awt.GridLayout;
+import java.awt.event.HierarchyBoundsAdapter;
+import java.awt.event.HierarchyEvent;
 import java.util.ArrayList;
 import java.util.List;
+import javax.swing.JComponent;
 import javax.swing.JPanel;
+import javax.swing.JViewport;
+import javax.swing.SwingUtilities;
 import org.netbeans.spi.dashboard.DashboardDisplayer;
 
 /**
@@ -31,23 +36,33 @@ import org.netbeans.spi.dashboard.DashboardDisplayer;
  */
 final class DashboardPanel extends JPanel {
 
-    private static final int WIDGET_WIDTH = 250;
-    private static final int WIDGET_HEIGHT = 250;
+    private static final int WIDGET_WIDTH = 240;
+    private static final int WIDGET_HEIGHT = 300;
+    private static final int WIDGET_GAP = 20;
 
     private final List<WidgetPanel> widgetPanels;
-    
-    private DashboardPanel(DashboardDisplayer displayer,
+    private final GridLayout layout;
+
+    DashboardPanel(DashboardDisplayer displayer,
             List<DashboardDisplayer.WidgetReference> widgetRefs) {
         widgetPanels = new ArrayList<>(widgetRefs.size());
-        setLayout(new WidgetLayout());
+        layout = new GridLayout(0, 3, WIDGET_GAP, WIDGET_GAP);
+        setLayout(layout);
         for (var ref : widgetRefs) {
             WidgetPanel w = WidgetPanel.create(displayer, ref);
-            w.setSize(WIDGET_WIDTH, WIDGET_HEIGHT);
+            w.setPreferredSize(new Dimension(WIDGET_WIDTH, WIDGET_HEIGHT));
             add(w);
             widgetPanels.add(w);
         }
+        addHierarchyBoundsListener(new HierarchyBoundsAdapter() {
+            @Override
+            public void ancestorResized(HierarchyEvent e) {
+                reflowGrid();
+            }
+
+        });
     }
-    
+
     void notifyShowing() {
         widgetPanels.forEach(WidgetPanel::notifyShowing);
     }
@@ -55,21 +70,27 @@ final class DashboardPanel extends JPanel {
     void notifyHidden() {
         widgetPanels.forEach(WidgetPanel::notifyHidden);
     }
-    
-    DashboardPanel create(DashboardDisplayer displayer,
-            List<DashboardDisplayer.WidgetReference> widgetRefs) {
-        return new DashboardPanel(displayer, widgetRefs);
-    }
-    
-    private static class WidgetLayout extends FlowLayout {
 
-        @Override
-        public Dimension preferredLayoutSize(Container target) {
-            return super.preferredLayoutSize(target);
+    private void reflowGrid() {
+        Container parent = SwingUtilities.getAncestorOfClass(JViewport.class, this);
+        if (parent == null) {
+            parent = getParent();
         }
-        
-        
-        
+        if (parent instanceof JComponent jparent) {
+            int currentWidth = jparent.getVisibleRect().width;
+            int perWidget = WIDGET_WIDTH + (2 * WIDGET_GAP);
+            if (currentWidth > 3 * perWidget) {
+                layout.setColumns(3);
+            } else if (currentWidth > 2 * perWidget) {
+                layout.setColumns(2);
+            } else if (currentWidth > 0) {
+                layout.setColumns(1);
+            } else {
+                layout.setColumns(3);
+            }
+            invalidate();
+        }
+
     }
 
 }

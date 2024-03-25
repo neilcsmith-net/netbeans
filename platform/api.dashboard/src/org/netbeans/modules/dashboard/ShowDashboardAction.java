@@ -19,33 +19,27 @@
 
 package org.netbeans.modules.dashboard;
 
-import java.util.List;
-import org.netbeans.spi.dashboard.DashboardDisplayer;
-import org.openide.util.Lookup;
+import java.awt.event.ActionEvent;
+import java.awt.event.ActionListener;
+import org.netbeans.api.dashboard.DashboardManager;
+import org.openide.awt.ActionID;
+import org.openide.awt.ActionReference;
+import org.openide.awt.ActionRegistration;
+import org.openide.util.NbBundle.Messages;
 
 /**
  *
  */
-public class DefaultDashboardDisplayer implements DashboardDisplayer {
-    
-    private static final DefaultDashboardDisplayer INSTANCE = new DefaultDashboardDisplayer();
-
-    private DefaultDashboardDisplayer() {
-        
-    }
-    
-    @Override
-    public Lookup getLookup() {
-        return Lookup.EMPTY;
-    }
+@ActionID(id = "org.netbeans.modules.dashboard.ShowDashboardAction", category = "Window")
+@ActionRegistration(displayName = "#LBL_Action")
+@ActionReference(path = "Menu/Window",
+        name = "org-netbeans-modules-dashboard-ShowDashboardAction", position = 1400)
+@Messages("LBL_Action=Show Dashboard")
+public class ShowDashboardAction implements ActionListener {
 
     @Override
-    public void show(List<WidgetReference> widgets) {
-        DashboardTopComponent.show(widgets);
-    }
-    
-    public static DefaultDashboardDisplayer getInstance() {
-        return INSTANCE;
+    public void actionPerformed(ActionEvent e) {
+        DashboardManager.getDefault().show();
     }
 
 }

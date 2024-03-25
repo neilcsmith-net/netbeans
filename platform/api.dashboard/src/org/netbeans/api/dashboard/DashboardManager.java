@@ -16,17 +16,19 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.netbeans.api.dashboard;
 
 import java.awt.EventQueue;
 import java.util.ArrayList;
+import java.util.Arrays;
+import java.util.Collection;
 import java.util.List;
 import org.netbeans.modules.dashboard.DefaultDashboardDisplayer;
 import org.netbeans.spi.dashboard.DashboardDisplayer;
 import org.netbeans.spi.dashboard.DashboardWidget;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.util.Lookup;
-import org.openide.util.lookup.Lookups;
 
 /**
  *
@@ -34,12 +36,12 @@ import org.openide.util.lookup.Lookups;
 public final class DashboardManager {
 
     private static final DashboardManager INSTANCE = new DashboardManager();
-    
+
     private static final String DEFAULT_PATH = "Dashboard/Main";
-    
+
     private List<DashboardDisplayer.WidgetReference> mainWidgets;
     private DashboardDisplayer mainDisplayer;
-    
+
     public void show() {
         if (!EventQueue.isDispatchThread()) {
             EventQueue.invokeLater(this::show);
@@ -53,33 +55,37 @@ public final class DashboardManager {
         }
         mainDisplayer.show(mainWidgets);
     }
-    
+
     private static DashboardDisplayer findMainDisplayer() {
         DashboardDisplayer displayer = Lookup.getDefault().lookup(DashboardDisplayer.class);
         if (displayer == null) {
-            displayer = new DefaultDashboardDisplayer();
+            displayer = DefaultDashboardDisplayer.getInstance();
         }
         return displayer;
     }
-    
+
     private static List<DashboardDisplayer.WidgetReference> findMainWidgets() {
-        List<DashboardDisplayer.WidgetReference> widgetRefs = new ArrayList<>();
-        String STRIP_ID = DEFAULT_PATH + "/";
-        for (Lookup.Item<DashboardWidget> item :
-                Lookups.forPath(DEFAULT_PATH).lookupResult(DashboardWidget.class).allItems()) {
-            String id = item.getId();
-            if (id.startsWith(STRIP_ID)) {
-                id = id.substring(STRIP_ID.length());
-            }
-            DashboardWidget widget = item.getInstance();
-            widgetRefs.add(new DashboardDisplayer.WidgetReference(id, widget));
+        FileObject folder = FileUtil.getConfigFile(DEFAULT_PATH);
+        if (folder == null) {
+            return List.of();
         }
+
+        Collection<FileObject> files = FileUtil.getOrder(Arrays.asList(folder.getChildren()), true);
+        List<DashboardDisplayer.WidgetReference> widgetRefs = new ArrayList<>();
+
+        for (FileObject file : files) {
+            String id = file.getName();
+            DashboardWidget widget = FileUtil.getConfigObject(file.getPath(), DashboardWidget.class);
+            if (widget != null) {
+                widgetRefs.add(new DashboardDisplayer.WidgetReference(id, widget));
+            }
+        }
+
         return List.copyOf(widgetRefs);
     }
-    
+
     public static DashboardManager getDefault() {
         return INSTANCE;
     }
-    
 
 }
