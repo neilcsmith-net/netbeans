@@ -19,33 +19,98 @@
 package org.netbeans.modules.dashboard;
 
 import java.awt.Color;
+import java.awt.Component;
+import java.awt.Cursor;
+import java.awt.Dimension;
 import java.awt.Font;
+import java.awt.FontMetrics;
+import java.awt.Graphics;
+import java.awt.Image;
+import java.awt.Insets;
+import java.awt.event.ActionEvent;
+import java.awt.event.MouseAdapter;
+import java.awt.event.MouseEvent;
+import java.net.URI;
+import javax.swing.AbstractAction;
+import javax.swing.Action;
+import javax.swing.BorderFactory;
+import javax.swing.Icon;
+import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
+import javax.swing.border.Border;
 import org.netbeans.spi.dashboard.WidgetElement;
+import org.openide.awt.HtmlBrowser;
+import org.openide.awt.StatusDisplayer;
+import org.openide.util.Exceptions;
+import org.openide.util.ImageUtilities;
+import org.openide.util.NbBundle;
 
 /**
  * Default creation of JComponents for WidgetElements.
  */
+@NbBundle.Messages({
+    "# {0} - link URI",
+    "TXT_statusLink=Open {0}"
+})
 final class WidgetComponents {
-
+    
     private WidgetComponents() {
-
+        
     }
-
+    
     static JComponent titleComponentFor(String title) {
-        return new JLabel(title);
+        MultiLineText text = new MultiLineText(title);
+        Font font = text.getFont();
+        text.setFont(font.deriveFont(font.getSize() * 1.4f));
+        return text;
     }
     
     static JComponent componentFor(WidgetElement element) {
         if (element instanceof WidgetElement.TextElement textElement) {
-            return new MultiLineText(textElement.text());
+            return componentForText(textElement);
+        } else if (element instanceof WidgetElement.ImageElement imageElement) {
+            return componentForImage(imageElement);
+        } else if (element instanceof WidgetElement.ActionElement actionElement) {
+            return componentForAction(actionElement);
+        } else if (element instanceof WidgetElement.LinkElement linkElement) {
+            return componentForLink(linkElement);
         } else if (element instanceof WidgetElement.ComponentElement cmpElement) {
             return cmpElement.component();
         }
         return null;
+    }
+    
+    private static JComponent componentForText(WidgetElement.TextElement element) {
+        MultiLineText text = new MultiLineText(element.text());
+        return text;
+    }
+    
+    private static JComponent componentForImage(WidgetElement.ImageElement element) {
+        Image image = ImageUtilities.loadImage(element.resourcePath(), true);
+        Icon icon = ImageUtilities.image2Icon(image);
+        JLabel label = new JLabel(icon);
+        label.setMinimumSize(new Dimension(0, 0));
+        return label;
+    }
+    
+    private static JComponent componentForAction(WidgetElement.ActionElement element) {
+        if (element.asLink()) {
+            return new LinkButton(element.action(), element.showIcon());
+        } else {
+            return new WidgetButton(element.action(), element.showIcon());
+        }
+    }
+    
+    private static JComponent componentForLink(WidgetElement.LinkElement element) {
+        Action action = new URIOpenAction(element.text(), element.link());
+        if (element.asButton()) {
+            return new WidgetButton(action, false);
+        } else {
+            return new LinkButton(action, false);
+        }
     }
     
     private static class MultiLineText extends JTextArea {
@@ -56,6 +121,8 @@ final class WidgetComponents {
             setCursor(null);
             setOpaque(false);
             setFocusable(false);
+            setBorder(BorderFactory.createEmptyBorder());
+            setMargin(new Insets(0, 0, 0, 0));
             Font labelFont = UIManager.getFont("Label.font");
             if (labelFont != null) {
                 setFont(labelFont);
@@ -69,5 +136,164 @@ final class WidgetComponents {
         }
         
     }
-
+    
+    private static class WidgetButton extends JButton {
+        
+        private final boolean allowIcon;
+        
+        private WidgetButton(Action action, boolean allowIcon) {
+            super(action);
+            this.allowIcon = allowIcon;
+            if (!allowIcon) {
+                setIcon(null);
+            }
+            setHorizontalAlignment(LEFT);
+            setToolTipText(null);
+            addMouseListener(new MouseAdapter() {
+                
+                @Override
+                public void mouseEntered(MouseEvent e) {
+                    onMouseEnter();
+                }
+                
+                @Override
+                public void mouseExited(MouseEvent e) {
+                    onMouseExit();
+                }
+                
+            });
+        }
+        
+        void onMouseEnter() {
+            Action action = getAction();
+            if (action != null) {
+                Object status = action.getValue(Action.SHORT_DESCRIPTION);
+                if (status instanceof String statusText) {
+                    StatusDisplayer.getDefault().setStatusText(statusText);
+                }
+            }
+        }
+        
+        void onMouseExit() {
+            StatusDisplayer.getDefault().setStatusText("");
+        }
+        
+        @Override
+        protected void actionPropertyChanged(Action action, String propertyName) {
+            if (allowedPropertyChange(propertyName)) {
+                super.actionPropertyChanged(action, propertyName);
+            }
+        }
+        
+        private boolean allowedPropertyChange(String propertyName) {
+            return switch (propertyName) {
+                case Action.SMALL_ICON ->
+                    allowIcon;
+                case Action.LARGE_ICON_KEY ->
+                    allowIcon;
+                case Action.SHORT_DESCRIPTION ->
+                    false;
+                case Action.LONG_DESCRIPTION ->
+                    false;
+                default ->
+                    true;
+            };
+        }
+        
+    }
+    
+    private static class LinkButton extends WidgetButton {
+        
+        private final Color linkColor;
+        private final Color hoverLinkColor;
+        
+        private LinkButton(Action action, boolean allowIcon) {
+            super(action, allowIcon);
+            linkColor = UIManager.getColor("nb.html.link.foreground");
+            hoverLinkColor = linkColor == null ? null
+                    : UIManager.getColor("nb.html.link.foreground.hover");
+            setContentAreaFilled(false);
+            setRolloverEnabled(true);
+            setBorder(new LinkBorder());
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+            if (linkColor != null) {
+                setForeground(linkColor);
+            }
+        }
+        
+        @Override
+        void onMouseEnter() {
+            super.onMouseEnter();
+            if (hoverLinkColor != null) {
+                setForeground(hoverLinkColor);
+            }
+        }
+        
+        @Override
+        void onMouseExit() {
+            super.onMouseExit();
+            if (linkColor != null) {
+                setForeground(linkColor);
+            }
+        }
+        
+        private class LinkBorder implements Border {
+            
+            @Override
+            public Insets getBorderInsets(Component c) {
+                return new Insets(1, 1, 1, 1);
+            }
+            
+            @Override
+            public boolean isBorderOpaque() {
+                return false;
+            }
+            
+            @Override
+            public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
+                if (getModel().isRollover()) {
+                    String text = getText();
+                    if (text.isEmpty()) {
+                        return;
+                    }
+                    g.setColor(getForeground());
+                    Font font = getFont();
+                    FontMetrics metrics = getFontMetrics(font);
+                    Icon icon = getIcon();
+                    int iconWidth = icon == null ? 0 : icon.getIconWidth() + getIconTextGap();
+                    int x1 = iconWidth;
+                    int x2 = metrics.stringWidth(text) + iconWidth;
+                    int y1 = metrics.getHeight();
+                    g.drawLine(x1, y1, x2, y1);
+                    
+                }
+            }
+            
+        }
+        
+    }
+    
+    private static class URIOpenAction extends AbstractAction {
+        
+        private final String text;
+        private final URI uri;
+        
+        private URIOpenAction(String text, URI uri) {
+            super(text);
+            this.text = text;
+            this.uri = uri;
+            putValue(Action.SHORT_DESCRIPTION, Bundle.TXT_statusLink(uri));
+        }
+        
+        @Override
+        public void actionPerformed(ActionEvent e) {
+            try {
+                HtmlBrowser.URLDisplayer.getDefault().showURLExternal(uri.toURL());
+            } catch (Exception ex) {
+                Exceptions.printStackTrace(ex);
+            }
+        }
+        
+    }
+    
 }

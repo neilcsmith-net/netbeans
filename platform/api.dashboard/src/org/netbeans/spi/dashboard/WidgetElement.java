@@ -64,7 +64,6 @@ public sealed abstract class WidgetElement {
         return new LinkElement(text, link, true);
     }
     
-
     public static ComponentElement component(Supplier<JComponent> componentSupplier) {
         return new ComponentElement(componentSupplier);
     }
@@ -81,6 +80,33 @@ public sealed abstract class WidgetElement {
             return text;
         }
 
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 17 * hash + Objects.hashCode(this.text);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final TextElement other = (TextElement) obj;
+            return Objects.equals(this.text, other.text);
+        }
+
+        @Override
+        public String toString() {
+            return "TextElement{" + "text=" + text + '}';
+        }
+        
     }
 
     public static final class ImageElement extends WidgetElement {
@@ -93,6 +119,33 @@ public sealed abstract class WidgetElement {
 
         public String resourcePath() {
             return resourcePath;
+        }
+
+        @Override
+        public int hashCode() {
+            int hash = 7;
+            hash = 19 * hash + Objects.hashCode(this.resourcePath);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final ImageElement other = (ImageElement) obj;
+            return Objects.equals(this.resourcePath, other.resourcePath);
+        }
+
+        @Override
+        public String toString() {
+            return "ImageElement{" + "resourcePath=" + resourcePath + '}';
         }
 
     }
@@ -121,6 +174,41 @@ public sealed abstract class WidgetElement {
             return icon;
         }
 
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 29 * hash + Objects.hashCode(this.action);
+            hash = 29 * hash + (this.link ? 1 : 0);
+            hash = 29 * hash + (this.icon ? 1 : 0);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final ActionElement other = (ActionElement) obj;
+            if (this.link != other.link) {
+                return false;
+            }
+            if (this.icon != other.icon) {
+                return false;
+            }
+            return Objects.equals(this.action, other.action);
+        }
+
+        @Override
+        public String toString() {
+            return "ActionElement{" + "action=" + action + ", link=" + link + ", icon=" + icon + '}';
+        }
+
     }
     
     public static final class LinkElement extends WidgetElement {
@@ -146,6 +234,41 @@ public sealed abstract class WidgetElement {
         public boolean asButton() {
             return button;
         }
+
+        @Override
+        public int hashCode() {
+            int hash = 3;
+            hash = 23 * hash + Objects.hashCode(this.text);
+            hash = 23 * hash + Objects.hashCode(this.link);
+            hash = 23 * hash + (this.button ? 1 : 0);
+            return hash;
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            if (this == obj) {
+                return true;
+            }
+            if (obj == null) {
+                return false;
+            }
+            if (getClass() != obj.getClass()) {
+                return false;
+            }
+            final LinkElement other = (LinkElement) obj;
+            if (this.button != other.button) {
+                return false;
+            }
+            if (!Objects.equals(this.text, other.text)) {
+                return false;
+            }
+            return Objects.equals(this.link, other.link);
+        }
+
+        @Override
+        public String toString() {
+            return "LinkElement{" + "text=" + text + ", link=" + link + ", button=" + button + '}';
+        }
         
     }
 
@@ -164,6 +287,13 @@ public sealed abstract class WidgetElement {
         public JComponent component() {
             return componentSupplier.get();
         }
+
+        @Override
+        public String toString() {
+            return "ComponentElement{" + "componentSupplier=" + componentSupplier + '}';
+        }
+        
+        
 
     }
 

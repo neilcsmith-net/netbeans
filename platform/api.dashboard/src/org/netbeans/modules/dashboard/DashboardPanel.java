@@ -37,8 +37,9 @@ import org.netbeans.spi.dashboard.DashboardDisplayer;
 final class DashboardPanel extends JPanel {
 
     private static final int WIDGET_WIDTH = 240;
-    private static final int WIDGET_HEIGHT = 300;
+    private static final int WIDGET_HEIGHT = 260;
     private static final int WIDGET_GAP = 20;
+    private static final int MAX_COLUMNS = 3;
 
     private final List<WidgetPanel> widgetPanels;
     private final GridLayout layout;
@@ -46,8 +47,9 @@ final class DashboardPanel extends JPanel {
     DashboardPanel(DashboardDisplayer displayer,
             List<DashboardDisplayer.WidgetReference> widgetRefs) {
         widgetPanels = new ArrayList<>(widgetRefs.size());
-        layout = new GridLayout(0, 3, WIDGET_GAP, WIDGET_GAP);
+        layout = new GridLayout(0, MAX_COLUMNS, WIDGET_GAP, WIDGET_GAP);
         setLayout(layout);
+        setOpaque(false);
         for (var ref : widgetRefs) {
             WidgetPanel w = WidgetPanel.create(displayer, ref);
             w.setPreferredSize(new Dimension(WIDGET_WIDTH, WIDGET_HEIGHT));
@@ -77,18 +79,20 @@ final class DashboardPanel extends JPanel {
             parent = getParent();
         }
         if (parent instanceof JComponent jparent) {
+            int currentColumns = layout.getColumns();
             int currentWidth = jparent.getVisibleRect().width;
-            int perWidget = WIDGET_WIDTH + (2 * WIDGET_GAP);
-            if (currentWidth > 3 * perWidget) {
-                layout.setColumns(3);
-            } else if (currentWidth > 2 * perWidget) {
-                layout.setColumns(2);
-            } else if (currentWidth > 0) {
-                layout.setColumns(1);
+            int widgetSpace = WIDGET_WIDTH + (2 * WIDGET_GAP);
+            int requiredColumns;
+            if (currentWidth > 1) {
+                requiredColumns = Math.min(MAX_COLUMNS,
+                        Math.max(1, currentWidth / widgetSpace));
             } else {
-                layout.setColumns(3);
+                requiredColumns = MAX_COLUMNS;
             }
-            invalidate();
+            if (requiredColumns != currentColumns) {
+                layout.setColumns(requiredColumns);
+                invalidate();
+            }
         }
 
     }

@@ -23,26 +23,24 @@ import java.util.List;
 import org.netbeans.spi.dashboard.DashboardDisplayer;
 import org.netbeans.spi.dashboard.DashboardWidget;
 import org.netbeans.spi.dashboard.WidgetElement;
+import org.openide.util.NbBundle.Messages;
 
 /**
- *
+ * Look & Feel info and links.
  */
-public class TestWidget implements DashboardWidget {
+@Messages({
+    "TITLE_Appearance=Look & Feel"
+})
+public class AppearanceWidget implements DashboardWidget {
 
     @Override
     public String title(DashboardDisplayer.Panel panel) {
-        return panel.id();
+        return Bundle.TITLE_Appearance();
     }
 
     @Override
     public List<WidgetElement> elements(DashboardDisplayer.Panel panel) {
-        return List.of(WidgetElement.text(
-        """
-        Lorem ipsum dolor sit amet, consectetur adipiscing elit, sed do eiusmod tempor incididunt ut labore et dolore magna aliqua.
-        """
-//        Ut enim ad minim veniam, quis nostrud exercitation ullamco laboris nisi ut aliquip ex ea commodo consequat. Duis aute irure dolor in reprehenderit in voluptate velit esse cillum dolore eu fugiat nulla pariatur. Excepteur sint occaecat cupidatat non proident, sunt in culpa qui officia deserunt mollit anim id est laborum.
-//        """
-        ));
+        return List.of();
     }
 
 

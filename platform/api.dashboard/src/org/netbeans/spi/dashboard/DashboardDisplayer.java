@@ -33,6 +33,11 @@ public interface DashboardDisplayer extends Lookup.Provider {
     public static interface Panel extends Lookup.Provider {
         
         public DashboardDisplayer displayer();
+
+        @Override
+        public default Lookup getLookup() {
+            return displayer().getLookup();
+        }
         
         public String id();
         

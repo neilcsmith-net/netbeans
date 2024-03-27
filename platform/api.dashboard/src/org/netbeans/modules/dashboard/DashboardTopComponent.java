@@ -50,6 +50,7 @@ public final class DashboardTopComponent extends TopComponent {
 
     public DashboardTopComponent() {
         initComponents();
+        scrollPane.getVerticalScrollBar().setUnitIncrement(20);
         setName(Bundle.CTL_DashboardTopComponent());
         setToolTipText(Bundle.HINT_DashboardTopComponent());
     }
@@ -68,7 +69,9 @@ public final class DashboardTopComponent extends TopComponent {
 
         setLayout(new java.awt.BorderLayout());
 
+        scrollPane.setBorder(null);
         scrollPane.setHorizontalScrollBarPolicy(javax.swing.ScrollPaneConstants.HORIZONTAL_SCROLLBAR_NEVER);
+        scrollPane.setViewportBorder(javax.swing.BorderFactory.createEmptyBorder(1, 1, 1, 1));
 
         dashContainer.setLayout(new java.awt.GridBagLayout());
 
