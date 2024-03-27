@@ -36,7 +36,7 @@ import org.openide.util.NbBundle.Messages;
     "TXT_Features=Apache NetBeans activates features as you use them - "
     + "just start creating and opening projects.",
     "TXT_Plugins=Add support for additional languages and technologies by "
-    + "installing plugins from the NetBeans Update Center.",
+    + "installing community plugins.",
     "LBL_InstallPlugins=Install Plugins",
     "STATUS_InstallPlugins=Open the plugin manager"
 })
@@ -71,7 +71,7 @@ public class PluginsWidget implements DashboardWidget {
         public void actionPerformed(ActionEvent e) {
             try {
                 Actions.forID("System", "org.netbeans.modules.autoupdate.ui.actions.PluginManagerAction")
-                        .actionPerformed(new ActionEvent(e.getSource(), e.getID(), initialTab));
+                        .actionPerformed(new ActionEvent(e.getSource(), 100, initialTab));
             } catch (Exception ex) {
                 Exceptions.printStackTrace(ex);
             }

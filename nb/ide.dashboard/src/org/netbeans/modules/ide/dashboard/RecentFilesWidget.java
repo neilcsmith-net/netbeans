@@ -20,6 +20,7 @@
 package org.netbeans.modules.ide.dashboard;
 
 import java.util.List;
+import org.netbeans.modules.openfile.RecentFiles;
 import org.netbeans.spi.dashboard.DashboardDisplayer;
 import org.netbeans.spi.dashboard.DashboardWidget;
 import org.netbeans.spi.dashboard.WidgetElement;

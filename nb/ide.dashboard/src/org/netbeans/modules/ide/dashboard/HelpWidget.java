@@ -36,7 +36,7 @@ import org.openide.util.NbBundle.Messages;
     "TITLE_Help=Learn & Discover",
     "LBL_ShowShortcuts=Keyboard Shortcuts",
     "STATUS_ShowShortcuts=Show and edit keyboard shortcuts.",
-    "LBL_OnlineLinks=Useful links...",
+    "LBL_OnlineLinks=Useful Links",
     "LBL_WebsiteLink=Apache NetBeans website",
     "URL_WebsiteLink=https://netbeans.apache.org",
     "LBL_CommunityLink=Community Help",

@@ -20,6 +20,7 @@ package org.netbeans.modules.dashboard;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
+import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
 import java.awt.GridBagLayout;
@@ -57,7 +58,7 @@ final class WidgetPanel extends JPanel {
         this.id = Objects.requireNonNull(id);
         this.widget = Objects.requireNonNull(widget);
         accessor = new Accessor();
-        titleColor = UIManager.getColor("controlDkShadow");
+        titleColor = null; //UIManager.getColor("controlDkShadow");
 
         setLayout(new BorderLayout());
 
@@ -160,7 +161,7 @@ final class WidgetPanel extends JPanel {
 
         @Override
         public void refresh() {
-            reconfigure();
+            EventQueue.invokeLater(WidgetPanel.this::reconfigure);
         }
 
     }

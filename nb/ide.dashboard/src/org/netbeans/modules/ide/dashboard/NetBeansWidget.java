@@ -19,7 +19,6 @@
 package org.netbeans.modules.ide.dashboard;
 
 import java.awt.event.ActionEvent;
-import java.net.URI;
 import java.util.List;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
