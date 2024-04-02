@@ -422,7 +422,7 @@ public final class RecentFiles {
     * One item of the recently closed files history.
     * Comparable by the time field, ascending from most recent to older items.
     */
-    static final class HistoryItem implements Comparable<HistoryItem> {
+    public static final class HistoryItem implements Comparable<HistoryItem> {
 
         private int id;
         private String path;
@@ -469,14 +469,14 @@ public final class RecentFiles {
          * Set icon of this history item. The icon can be set after
          * initialization, usually after it was loaded in a background thread.
          */
-        public void setIcon(Icon icon) {
+        void setIcon(Icon icon) {
             this.icon = icon;
         }
 
         /**
          * Return bytes for the icon, or null if no icon is specified.
          */
-        public byte[] getIconBytes() {
+        byte[] getIconBytes() {
             return iconToBytes(icon);
         }
 

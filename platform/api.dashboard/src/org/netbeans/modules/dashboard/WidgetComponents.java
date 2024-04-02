@@ -43,6 +43,12 @@ import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
 import org.netbeans.spi.dashboard.WidgetElement;
+import org.netbeans.spi.dashboard.WidgetElement.ActionElement;
+import org.netbeans.spi.dashboard.WidgetElement.ComponentElement;
+import org.netbeans.spi.dashboard.WidgetElement.ImageElement;
+import org.netbeans.spi.dashboard.WidgetElement.LinkElement;
+import org.netbeans.spi.dashboard.WidgetElement.SeparatorElement;
+import org.netbeans.spi.dashboard.WidgetElement.TextElement;
 import org.openide.awt.HtmlBrowser;
 import org.openide.awt.StatusDisplayer;
 import org.openide.util.Exceptions;
@@ -70,28 +76,40 @@ final class WidgetComponents {
     }
 
     static JComponent componentFor(WidgetElement element) {
-        if (element instanceof WidgetElement.TextElement textElement) {
+        if (element instanceof TextElement textElement) {
             return componentForText(textElement);
-        } else if (element instanceof WidgetElement.ImageElement imageElement) {
+        } else if (element instanceof ImageElement imageElement) {
             return componentForImage(imageElement);
-        } else if (element instanceof WidgetElement.ActionElement actionElement) {
+        } else if (element instanceof ActionElement actionElement) {
             return componentForAction(actionElement);
-        } else if (element instanceof WidgetElement.LinkElement linkElement) {
+        } else if (element instanceof LinkElement linkElement) {
             return componentForLink(linkElement);
-        } else if (element instanceof WidgetElement.SeparatorElement sepElement) {
+        } else if (element instanceof SeparatorElement sepElement) {
             return componentForSeparator(sepElement);
-        } else if (element instanceof WidgetElement.ComponentElement cmpElement) {
+        } else if (element instanceof ComponentElement cmpElement) {
             return cmpElement.component();
         }
         return null;
     }
 
-    private static JComponent componentForText(WidgetElement.TextElement element) {
+    private static JComponent componentForText(TextElement element) {
         MultiLineText text = new MultiLineText(element.text());
+        TextElement.Kind kind = element.kind();
+        if (kind == TextElement.Kind.SUBHEADING) {
+            Font font = text.getFont();
+            text.setFont(font.deriveFont(font.getSize() * 1.1f));
+        } else if (kind == TextElement.Kind.ASIDE || kind == TextElement.Kind.UNAVAILABLE) {
+            Font font = text.getFont();
+            text.setFont(font.deriveFont(font.getSize() * 0.9f));
+            Color color = UIManager.getColor("controlDkShadow");
+            if (color != null) {
+                text.setForeground(color);
+            }
+        }
         return text;
     }
 
-    private static JComponent componentForImage(WidgetElement.ImageElement element) {
+    private static JComponent componentForImage(ImageElement element) {
         Image image = ImageUtilities.loadImage(element.resourcePath(), true);
         Icon icon = ImageUtilities.image2Icon(image);
         JLabel label = new JLabel(icon);
@@ -99,7 +117,7 @@ final class WidgetComponents {
         return label;
     }
 
-    private static JComponent componentForAction(WidgetElement.ActionElement element) {
+    private static JComponent componentForAction(ActionElement element) {
         if (element.asLink()) {
             return new LinkButton(element.action(), element.showIcon());
         } else {
@@ -107,7 +125,7 @@ final class WidgetComponents {
         }
     }
 
-    private static JComponent componentForLink(WidgetElement.LinkElement element) {
+    private static JComponent componentForLink(LinkElement element) {
         Action action = new URIOpenAction(element.text(), element.link());
         if (element.asButton()) {
             return new WidgetButton(action, false);
@@ -129,6 +147,8 @@ final class WidgetComponents {
             setEditable(false);
             setCursor(null);
             setOpaque(false);
+            // some LAFs (looking at you Nimbus!) require transparent bg color
+            setBackground(new Color(0, 0, 0, 0));
             setFocusable(false);
             setBorder(BorderFactory.createEmptyBorder());
             setMargin(new Insets(0, 0, 0, 0));
@@ -231,7 +251,11 @@ final class WidgetComponents {
                 linkColor = getForeground();
                 hoverLinkColor = getForeground();
             }
-            backgroundColor = getBackground();
+            Color bg = UIManager.getColor("Panel.background");
+            if (bg == null) {
+                bg = getBackground();
+            }
+            backgroundColor = bg;
             Border padding = BorderFactory.createEmptyBorder(4, 6, 4, 6);
             border = BorderFactory.createCompoundBorder(
                     BorderFactory.createLineBorder(linkColor),
@@ -248,7 +272,7 @@ final class WidgetComponents {
         @Override
         void onMouseEnter() {
             super.onMouseEnter();
-            setForeground(backgroundColor);
+            setForeground(new Color(backgroundColor.getRGB()));
             rollover = true;
             setBorder(hoverBorder);
         }
@@ -264,8 +288,10 @@ final class WidgetComponents {
         @Override
         protected void paintComponent(Graphics g) {
             if (rollover) {
+                Color c = g.getColor();
                 g.setColor(linkColor);
                 g.fillRect(0, 0, getWidth(), getHeight());
+                g.setColor(c);
             }
             super.paintComponent(g);
         }

@@ -28,55 +28,73 @@ import javax.swing.JComponent;
  *
  */
 public sealed abstract class WidgetElement {
-    
+
     private WidgetElement() {
     }
 
     public static TextElement text(String text) {
-        return new TextElement(text);
+        return new TextElement(TextElement.Kind.NORMAL, text);
+    }
+    
+    public static TextElement aside(String text) {
+        return new TextElement(TextElement.Kind.ASIDE, text);
+    }
+    
+    public static TextElement unavailable(String text) {
+        return new TextElement(TextElement.Kind.UNAVAILABLE, text);
+    }
+    
+    public static TextElement subheading(String text) {
+        return new TextElement(TextElement.Kind.SUBHEADING, text);
     }
 
     public static ImageElement image(String resourcePath) {
         return new ImageElement(resourcePath);
     }
-    
+
     public static ActionElement action(Action action) {
         return new ActionElement(action, false, true);
     }
-    
+
     public static ActionElement actionNoIcon(Action action) {
         return new ActionElement(action, false, false);
     }
-    
+
     public static ActionElement actionLink(Action action) {
         return new ActionElement(action, true, true);
     }
-    
+
     public static ActionElement actionLinkNoIcon(Action action) {
         return new ActionElement(action, true, false);
     }
-    
+
     public static LinkElement link(String text, URI link) {
         return new LinkElement(text, link, false);
     }
-    
+
     public static LinkElement linkButton(String text, URI link) {
         return new LinkElement(text, link, true);
     }
-    
+
     public static SeparatorElement separator() {
         return new SeparatorElement();
     }
-    
+
     public static ComponentElement component(Supplier<JComponent> componentSupplier) {
         return new ComponentElement(componentSupplier);
     }
 
     public static final class TextElement extends WidgetElement {
 
+        public enum Kind {
+            NORMAL, ASIDE, SUBHEADING, UNAVAILABLE
+        }
+
+        private final Kind kind;
         private final String text;
 
-        TextElement(String text) {
+        TextElement(Kind kind, String text) {
+            this.kind = Objects.requireNonNull(kind);
             this.text = Objects.requireNonNull(text);
         }
 
@@ -84,10 +102,15 @@ public sealed abstract class WidgetElement {
             return text;
         }
 
+        public Kind kind() {
+            return kind;
+        }
+
         @Override
         public int hashCode() {
             int hash = 3;
-            hash = 17 * hash + Objects.hashCode(this.text);
+            hash = 89 * hash + Objects.hashCode(this.text);
+            hash = 89 * hash + Objects.hashCode(this.kind);
             return hash;
         }
 
@@ -103,14 +126,17 @@ public sealed abstract class WidgetElement {
                 return false;
             }
             final TextElement other = (TextElement) obj;
-            return Objects.equals(this.text, other.text);
+            if (!Objects.equals(this.text, other.text)) {
+                return false;
+            }
+            return this.kind == other.kind;
         }
 
         @Override
         public String toString() {
-            return "TextElement{" + "text=" + text + '}';
+            return "TextElement{" + "kind=" + kind + ", text=" + text + '}';
         }
-        
+
     }
 
     public static final class ImageElement extends WidgetElement {
@@ -155,25 +181,25 @@ public sealed abstract class WidgetElement {
     }
 
     public static final class ActionElement extends WidgetElement {
-        
+
         private final Action action;
         private final boolean link;
         private final boolean icon;
-        
+
         ActionElement(Action action, boolean link, boolean icon) {
             this.action = Objects.requireNonNull(action);
             this.link = link;
             this.icon = icon;
         }
-        
+
         public Action action() {
             return action;
         }
-        
+
         public boolean asLink() {
             return link;
         }
-        
+
         public boolean showIcon() {
             return icon;
         }
@@ -214,27 +240,27 @@ public sealed abstract class WidgetElement {
         }
 
     }
-    
+
     public static final class LinkElement extends WidgetElement {
-        
+
         private final String text;
         private final URI link;
         private final boolean button;
-        
+
         LinkElement(String text, URI link, boolean button) {
             this.text = Objects.requireNonNull(text);
             this.link = Objects.requireNonNull(link);
             this.button = button;
         }
-        
+
         public String text() {
             return text;
         }
-        
+
         public URI link() {
             return link;
         }
-        
+
         public boolean asButton() {
             return button;
         }
@@ -273,13 +299,13 @@ public sealed abstract class WidgetElement {
         public String toString() {
             return "LinkElement{" + "text=" + text + ", link=" + link + ", button=" + button + '}';
         }
-        
+
     }
-    
+
     public static final class SeparatorElement extends WidgetElement {
-        
+
         SeparatorElement() {
-            
+
         }
 
         @Override
@@ -319,8 +345,6 @@ public sealed abstract class WidgetElement {
         public String toString() {
             return "ComponentElement{" + "componentSupplier=" + componentSupplier + '}';
         }
-        
-        
 
     }
 

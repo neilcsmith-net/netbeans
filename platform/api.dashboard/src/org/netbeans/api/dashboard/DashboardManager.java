@@ -53,7 +53,7 @@ public final class DashboardManager {
         if (mainWidgets == null) {
             mainWidgets = findMainWidgets();
         }
-        mainDisplayer.show(mainWidgets);
+        mainDisplayer.show("Main", mainWidgets);
     }
 
     private static DashboardDisplayer findMainDisplayer() {

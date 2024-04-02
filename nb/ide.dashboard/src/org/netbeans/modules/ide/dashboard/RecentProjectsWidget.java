@@ -33,7 +33,6 @@ import java.util.logging.Level;
 import java.util.logging.Logger;
 import javax.swing.AbstractAction;
 import javax.swing.Action;
-import javax.swing.JSeparator;
 import org.netbeans.api.progress.BaseProgressUtils;
 import org.netbeans.api.project.Project;
 import org.netbeans.api.project.ProjectManager;
@@ -118,16 +117,20 @@ public class RecentProjectsWidget implements DashboardWidget {
 
     @Override
     public void showing(DashboardDisplayer.Panel panel) {
+        if (active.isEmpty()) {
+            RecentProjects.getDefault().addPropertyChangeListener(projectsListener);
+        }
         active.add(panel);
         panel.refresh();
         loadProjects();
-        RecentProjects.getDefault().addPropertyChangeListener(projectsListener);
     }
 
     @Override
     public void hidden(DashboardDisplayer.Panel panel) {
         active.remove(panel);
-        RecentProjects.getDefault().removePropertyChangeListener(projectsListener);
+        if (active.isEmpty()) {
+            RecentProjects.getDefault().removePropertyChangeListener(projectsListener);
+        }
     }
 
     // derived from RecentProjectsPanel in Welcome module
@@ -159,7 +162,7 @@ public class RecentProjectsWidget implements DashboardWidget {
     private void buildElements() {
         elements.clear();
         if (projects.isEmpty()) {
-            elements.add(WidgetElement.text(Bundle.LBL_NoRecentProjects()));
+            elements.add(WidgetElement.unavailable(Bundle.LBL_NoRecentProjects()));
         } else {
             for (UnloadedProjectInformation project : projects) {
                 elements.add(WidgetElement.actionLink(new OpenProjectAction(project)));
@@ -184,7 +187,7 @@ public class RecentProjectsWidget implements DashboardWidget {
             this.projects.clear();
             this.projects.addAll(projects);
             buildElements();
-            active.forEach(panel -> panel.refresh());
+            active.forEach(DashboardDisplayer.Panel::refresh);
         }
     }
 
@@ -205,11 +208,11 @@ public class RecentProjectsWidget implements DashboardWidget {
     }
 
     // derived from RecentProjectsPanel in Welcome panel
-    private class OpenProjectAction extends AbstractAction {
+    private static class OpenProjectAction extends AbstractAction {
 
         private final UnloadedProjectInformation project;
 
-        public OpenProjectAction(UnloadedProjectInformation project) {
+        private OpenProjectAction(UnloadedProjectInformation project) {
             super(project.getDisplayName(), project.getIcon());
             this.project = project;
         }

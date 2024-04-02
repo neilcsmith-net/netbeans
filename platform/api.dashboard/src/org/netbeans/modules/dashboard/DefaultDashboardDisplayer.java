@@ -40,7 +40,7 @@ public class DefaultDashboardDisplayer implements DashboardDisplayer {
     }
 
     @Override
-    public void show(List<WidgetReference> widgets) {
+    public void show(String category, List<WidgetReference> widgets) {
         DashboardTopComponent.show(widgets);
     }
     

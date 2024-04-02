@@ -28,7 +28,7 @@ import org.openide.util.Lookup;
  */
 public interface DashboardDisplayer extends Lookup.Provider {
     
-    public void show(List<WidgetReference> widgets);
+    public void show(String category, List<WidgetReference> widgets);
     
     public static interface Panel extends Lookup.Provider {
         
