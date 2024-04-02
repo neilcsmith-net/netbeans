@@ -55,7 +55,7 @@ public class HelpWidget implements DashboardWidget {
     public List<WidgetElement> elements(DashboardDisplayer.Panel panel) {
         return List.of(
                 WidgetElement.actionLink(new ShowShortcutsAction()),
-                WidgetElement.text(""),
+                WidgetElement.separator(),
                 WidgetElement.text(Bundle.LBL_OnlineLinks()),
                 WidgetElement.link(Bundle.LBL_WebsiteLink(), URI.create(Bundle.URL_WebsiteLink())),
                 WidgetElement.link(Bundle.LBL_CommunityLink(), URI.create(Bundle.URL_CommunityLink())),

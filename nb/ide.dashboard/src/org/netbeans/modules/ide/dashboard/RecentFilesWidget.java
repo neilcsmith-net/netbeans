@@ -19,12 +19,15 @@
 
 package org.netbeans.modules.ide.dashboard;
 
+import java.util.ArrayList;
 import java.util.List;
+import javax.swing.Action;
 import org.netbeans.modules.openfile.RecentFiles;
 import org.netbeans.spi.dashboard.DashboardDisplayer;
 import org.netbeans.spi.dashboard.DashboardWidget;
 import org.netbeans.spi.dashboard.WidgetElement;
 import org.openide.util.NbBundle.Messages;
+import org.openide.util.RequestProcessor;
 
 
 /**
@@ -35,7 +38,20 @@ import org.openide.util.NbBundle.Messages;
     "LBL_NoRecentFiles=<no recent files>"
 })
 public class RecentFilesWidget implements DashboardWidget {
-
+    
+    private static final int MAX_FILES = 5;
+    
+    private final List<WidgetElement> elements;
+    
+    private final Action newFile;
+    private final Action openFile;
+    
+    public RecentFilesWidget() {
+        elements = new ArrayList<>();
+        newFile = null;
+        openFile = null;
+    }
+    
     @Override
     public String title(DashboardDisplayer.Panel panel) {
         return Bundle.TITLE_RecentFiles();

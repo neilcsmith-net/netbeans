@@ -38,6 +38,7 @@ import javax.swing.Icon;
 import javax.swing.JButton;
 import javax.swing.JComponent;
 import javax.swing.JLabel;
+import javax.swing.JSeparator;
 import javax.swing.JTextArea;
 import javax.swing.UIManager;
 import javax.swing.border.Border;
@@ -56,18 +57,18 @@ import org.openide.util.NbBundle;
     "TXT_statusLink=Open {0}"
 })
 final class WidgetComponents {
-    
+
     private WidgetComponents() {
-        
+
     }
-    
+
     static JComponent titleComponentFor(String title) {
         MultiLineText text = new MultiLineText(title);
         Font font = text.getFont();
         text.setFont(font.deriveFont(font.getSize() * 1.4f));
         return text;
     }
-    
+
     static JComponent componentFor(WidgetElement element) {
         if (element instanceof WidgetElement.TextElement textElement) {
             return componentForText(textElement);
@@ -77,17 +78,19 @@ final class WidgetComponents {
             return componentForAction(actionElement);
         } else if (element instanceof WidgetElement.LinkElement linkElement) {
             return componentForLink(linkElement);
+        } else if (element instanceof WidgetElement.SeparatorElement sepElement) {
+            return componentForSeparator(sepElement);
         } else if (element instanceof WidgetElement.ComponentElement cmpElement) {
             return cmpElement.component();
         }
         return null;
     }
-    
+
     private static JComponent componentForText(WidgetElement.TextElement element) {
         MultiLineText text = new MultiLineText(element.text());
         return text;
     }
-    
+
     private static JComponent componentForImage(WidgetElement.ImageElement element) {
         Image image = ImageUtilities.loadImage(element.resourcePath(), true);
         Icon icon = ImageUtilities.image2Icon(image);
@@ -95,7 +98,7 @@ final class WidgetComponents {
         label.setMinimumSize(new Dimension(0, 0));
         return label;
     }
-    
+
     private static JComponent componentForAction(WidgetElement.ActionElement element) {
         if (element.asLink()) {
             return new LinkButton(element.action(), element.showIcon());
@@ -103,7 +106,7 @@ final class WidgetComponents {
             return new WidgetButton(element.action(), element.showIcon());
         }
     }
-    
+
     private static JComponent componentForLink(WidgetElement.LinkElement element) {
         Action action = new URIOpenAction(element.text(), element.link());
         if (element.asButton()) {
@@ -112,9 +115,15 @@ final class WidgetComponents {
             return new LinkButton(action, false);
         }
     }
-    
+
+    private static JComponent componentForSeparator(WidgetElement.SeparatorElement element) {
+        JSeparator sep = new JSeparator();
+        sep.setPreferredSize(new Dimension(75, 8));
+        return sep;
+    }
+
     private static class MultiLineText extends JTextArea {
-        
+
         private MultiLineText(String text) {
             super(text);
             setEditable(false);
@@ -134,14 +143,14 @@ final class WidgetComponents {
             setWrapStyleWord(true);
             setLineWrap(true);
         }
-        
+
     }
-    
-    private static class WidgetButton extends JButton {
-        
+
+    private static abstract class AbstractWidgetButton extends JButton {
+
         private final boolean allowIcon;
-        
-        private WidgetButton(Action action, boolean allowIcon) {
+
+        private AbstractWidgetButton(Action action, boolean allowIcon) {
             super(action);
             this.allowIcon = allowIcon;
             if (!allowIcon) {
@@ -150,20 +159,20 @@ final class WidgetComponents {
             setHorizontalAlignment(LEFT);
             setToolTipText(null);
             addMouseListener(new MouseAdapter() {
-                
+
                 @Override
                 public void mouseEntered(MouseEvent e) {
                     onMouseEnter();
                 }
-                
+
                 @Override
                 public void mouseExited(MouseEvent e) {
                     onMouseExit();
                 }
-                
+
             });
         }
-        
+
         void onMouseEnter() {
             Action action = getAction();
             if (action != null) {
@@ -173,18 +182,18 @@ final class WidgetComponents {
                 }
             }
         }
-        
+
         void onMouseExit() {
             StatusDisplayer.getDefault().setStatusText("");
         }
-        
+
         @Override
         protected void actionPropertyChanged(Action action, String propertyName) {
             if (allowedPropertyChange(propertyName)) {
                 super.actionPropertyChanged(action, propertyName);
             }
         }
-        
+
         private boolean allowedPropertyChange(String propertyName) {
             return switch (propertyName) {
                 case Action.SMALL_ICON ->
@@ -199,59 +208,128 @@ final class WidgetComponents {
                     true;
             };
         }
-        
+
     }
-    
-    private static class LinkButton extends WidgetButton {
-        
+
+    private static class WidgetButton extends AbstractWidgetButton {
+
         private final Color linkColor;
         private final Color hoverLinkColor;
-        
+        private final Color backgroundColor;
+        private final Border border;
+        private final Border hoverBorder;
+
+        private boolean rollover;
+
+        private WidgetButton(Action action, boolean allowIcon) {
+            super(action, allowIcon);
+            Color link = UIManager.getColor("nb.html.link.foreground");
+            if (link != null) {
+                linkColor = link;
+                hoverLinkColor = UIManager.getColor("nb.html.link.foreground.hover");
+            } else {
+                linkColor = getForeground();
+                hoverLinkColor = getForeground();
+            }
+            backgroundColor = getBackground();
+            Border padding = BorderFactory.createEmptyBorder(4, 6, 4, 6);
+            border = BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(linkColor),
+                    padding);
+            hoverBorder = BorderFactory.createCompoundBorder(
+                    BorderFactory.createLineBorder(hoverLinkColor),
+                    padding);
+            setForeground(linkColor);
+            setContentAreaFilled(false);
+            setBorder(border);
+            setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
+        }
+
+        @Override
+        void onMouseEnter() {
+            super.onMouseEnter();
+            setForeground(backgroundColor);
+            rollover = true;
+            setBorder(hoverBorder);
+        }
+
+        @Override
+        void onMouseExit() {
+            super.onMouseExit();
+            setForeground(linkColor);
+            rollover = false;
+            setBorder(border);
+        }
+
+        @Override
+        protected void paintComponent(Graphics g) {
+            if (rollover) {
+                g.setColor(linkColor);
+                g.fillRect(0, 0, getWidth(), getHeight());
+            }
+            super.paintComponent(g);
+        }
+
+    }
+
+    private static class LinkButton extends AbstractWidgetButton {
+
+        private final Color linkColor;
+        private final Color hoverLinkColor;
+
+        private boolean rollover;
+
         private LinkButton(Action action, boolean allowIcon) {
             super(action, allowIcon);
-            linkColor = UIManager.getColor("nb.html.link.foreground");
-            hoverLinkColor = linkColor == null ? null
-                    : UIManager.getColor("nb.html.link.foreground.hover");
+            Color link = UIManager.getColor("nb.html.link.foreground");
+            if (link != null) {
+                linkColor = link;
+                hoverLinkColor = UIManager.getColor("nb.html.link.foreground.hover");
+            } else {
+                linkColor = null;
+                hoverLinkColor = null;
+            }
             setContentAreaFilled(false);
-            setRolloverEnabled(true);
             setBorder(new LinkBorder());
             setCursor(Cursor.getPredefinedCursor(Cursor.HAND_CURSOR));
             if (linkColor != null) {
                 setForeground(linkColor);
             }
         }
-        
+
         @Override
         void onMouseEnter() {
             super.onMouseEnter();
             if (hoverLinkColor != null) {
                 setForeground(hoverLinkColor);
             }
+            rollover = true;
         }
-        
+
         @Override
         void onMouseExit() {
             super.onMouseExit();
             if (linkColor != null) {
                 setForeground(linkColor);
             }
+            rollover = false;
         }
-        
+
         private class LinkBorder implements Border {
-            
+
             @Override
             public Insets getBorderInsets(Component c) {
                 return new Insets(1, 1, 1, 1);
             }
-            
+
             @Override
             public boolean isBorderOpaque() {
                 return false;
             }
-            
+
             @Override
             public void paintBorder(Component c, Graphics g, int x, int y, int width, int height) {
-                if (getModel().isRollover()) {
+                if (rollover) {
                     String text = getText();
                     if (text.isEmpty()) {
                         return;
@@ -265,26 +343,26 @@ final class WidgetComponents {
                     int x2 = metrics.stringWidth(text) + iconWidth;
                     int y1 = metrics.getHeight();
                     g.drawLine(x1, y1, x2, y1);
-                    
+
                 }
             }
-            
+
         }
-        
+
     }
-    
+
     private static class URIOpenAction extends AbstractAction {
-        
+
         private final String text;
         private final URI uri;
-        
+
         private URIOpenAction(String text, URI uri) {
             super(text);
             this.text = text;
             this.uri = uri;
             putValue(Action.SHORT_DESCRIPTION, Bundle.TXT_statusLink(uri));
         }
-        
+
         @Override
         public void actionPerformed(ActionEvent e) {
             try {
@@ -293,7 +371,7 @@ final class WidgetComponents {
                 Exceptions.printStackTrace(ex);
             }
         }
-        
+
     }
-    
+
 }

@@ -88,11 +88,11 @@ public final class RecentFiles {
     private RecentFiles() {
     }
 
-    static void addPropertyChangeListener(PropertyChangeListener l) {
+    public static void addPropertyChangeListener(PropertyChangeListener l) {
         PCH_SUPPORT.addPropertyChangeListener(l);
     }
 
-    static void removePropertyChangeListener(PropertyChangeListener l) {
+    public static void removePropertyChangeListener(PropertyChangeListener l) {
         PCH_SUPPORT.removePropertyChangeListener(l);
     }
 
@@ -117,7 +117,7 @@ public final class RecentFiles {
     }
 
     /** Returns read-only list of recently closed files */
-    static List<HistoryItem> getRecentFiles() {
+    public static List<HistoryItem> getRecentFiles() {
         synchronized (HISTORY_LOCK) {
             checkHistory();
             return Collections.unmodifiableList(history);

@@ -51,6 +51,7 @@ public class PluginsWidget implements DashboardWidget {
     public List<WidgetElement> elements(DashboardDisplayer.Panel panel) {
         return List.of(
                 WidgetElement.text(Bundle.TXT_Features()),
+                WidgetElement.separator(),
                 WidgetElement.text(Bundle.TXT_Plugins()),
                 WidgetElement.action(new ShowPluginManagerAction())
         );

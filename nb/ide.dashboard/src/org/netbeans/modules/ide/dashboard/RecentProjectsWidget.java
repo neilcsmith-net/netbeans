@@ -166,7 +166,7 @@ public class RecentProjectsWidget implements DashboardWidget {
             }
         }
         if (newProject != null || openProject != null || projectGroups != null) {
-            elements.add(WidgetElement.component(JSeparator::new));
+            elements.add(WidgetElement.separator());
         }
         if (newProject != null) {
             elements.add(WidgetElement.actionLink(newProject));

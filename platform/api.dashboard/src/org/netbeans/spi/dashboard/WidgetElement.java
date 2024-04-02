@@ -28,7 +28,7 @@ import javax.swing.JComponent;
  *
  */
 public sealed abstract class WidgetElement {
-
+    
     private WidgetElement() {
     }
 
@@ -62,6 +62,10 @@ public sealed abstract class WidgetElement {
     
     public static LinkElement linkButton(String text, URI link) {
         return new LinkElement(text, link, true);
+    }
+    
+    public static SeparatorElement separator() {
+        return new SeparatorElement();
     }
     
     public static ComponentElement component(Supplier<JComponent> componentSupplier) {
@@ -270,6 +274,29 @@ public sealed abstract class WidgetElement {
             return "LinkElement{" + "text=" + text + ", link=" + link + ", button=" + button + '}';
         }
         
+    }
+    
+    public static final class SeparatorElement extends WidgetElement {
+        
+        SeparatorElement() {
+            
+        }
+
+        @Override
+        public boolean equals(Object obj) {
+            return obj instanceof SeparatorElement;
+        }
+
+        @Override
+        public int hashCode() {
+            return SeparatorElement.class.hashCode();
+        }
+
+        @Override
+        public String toString() {
+            return "SeparatorElement{}";
+        }
+
     }
 
     public static final class ComponentElement extends WidgetElement {
