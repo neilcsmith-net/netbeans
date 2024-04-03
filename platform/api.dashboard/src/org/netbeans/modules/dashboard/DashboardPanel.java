@@ -44,6 +44,8 @@ final class DashboardPanel extends JPanel {
     private final List<WidgetPanel> widgetPanels;
     private final GridLayout layout;
 
+    private boolean showing;
+
     DashboardPanel(DashboardDisplayer displayer,
             List<DashboardDisplayer.WidgetReference> widgetRefs) {
         widgetPanels = new ArrayList<>(widgetRefs.size());
@@ -66,11 +68,17 @@ final class DashboardPanel extends JPanel {
     }
 
     void notifyShowing() {
-        widgetPanels.forEach(WidgetPanel::notifyShowing);
+        if (!showing) {
+            showing = true;
+            widgetPanels.forEach(WidgetPanel::notifyShowing);
+        }
     }
 
     void notifyHidden() {
-        widgetPanels.forEach(WidgetPanel::notifyHidden);
+        if (showing) {
+            showing = false;
+            widgetPanels.forEach(WidgetPanel::notifyHidden);
+        }
     }
 
     private void reflowGrid() {

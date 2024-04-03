@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.netbeans.spi.dashboard;
 
 import java.util.List;
@@ -27,55 +26,48 @@ import org.openide.util.Lookup;
  *
  */
 public interface DashboardDisplayer extends Lookup.Provider {
-    
-    public void show(String category, List<WidgetReference> widgets);
-    
-    public static interface Panel extends Lookup.Provider {
-        
-        public DashboardDisplayer displayer();
 
-        @Override
-        public default Lookup getLookup() {
-            return displayer().getLookup();
-        }
-        
+    public void show(String category, List<WidgetReference> widgets);
+
+    public static interface Panel extends Lookup.Provider {
+
+        public WidgetReference widgetReference();
+
         public String id();
-        
+
         public void refresh();
-        
+
     }
-    
+
     public static final class WidgetReference implements Lookup.Provider {
 
         private final String id;
         private final DashboardWidget widget;
         private final Lookup lookup;
-        
+
         public WidgetReference(String id, DashboardWidget widget) {
             this(id, widget, Lookup.EMPTY);
         }
-        
+
         public WidgetReference(String id, DashboardWidget widget, Lookup lookup) {
             this.id = Objects.requireNonNull(id);
             this.widget = Objects.requireNonNull(widget);
             this.lookup = Objects.requireNonNull(lookup);
         }
-        
+
         public String id() {
             return id;
         }
-        
+
         public DashboardWidget widget() {
             return widget;
         }
-        
+
         @Override
         public Lookup getLookup() {
             return lookup;
         }
-        
-        
-        
+
     }
 
 }

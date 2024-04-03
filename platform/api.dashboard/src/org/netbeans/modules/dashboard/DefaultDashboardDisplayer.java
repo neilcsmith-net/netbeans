@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.netbeans.modules.dashboard;
 
 import java.util.List;
@@ -27,13 +26,13 @@ import org.openide.util.Lookup;
  *
  */
 public class DefaultDashboardDisplayer implements DashboardDisplayer {
-    
-    private static final DefaultDashboardDisplayer INSTANCE = new DefaultDashboardDisplayer();
+
+    static DashboardDisplayer instance;
 
     private DefaultDashboardDisplayer() {
-        
+
     }
-    
+
     @Override
     public Lookup getLookup() {
         return Lookup.EMPTY;
@@ -41,11 +40,23 @@ public class DefaultDashboardDisplayer implements DashboardDisplayer {
 
     @Override
     public void show(String category, List<WidgetReference> widgets) {
-        DashboardTopComponent.show(widgets);
+        DashboardTopComponent.show(this, widgets);
     }
-    
-    public static DefaultDashboardDisplayer getInstance() {
-        return INSTANCE;
+
+    public static synchronized DashboardDisplayer findOrDefault() {
+        if (instance == null) {
+            DashboardDisplayer dd = Lookup.getDefault().lookup(DashboardDisplayer.class);
+            if (dd != null) {
+                instance = dd;
+            } else {
+                instance = new DefaultDashboardDisplayer();
+            }
+        }
+        return instance;
+    }
+
+    static boolean isDefaultDisplayer() {
+        return findOrDefault() instanceof DefaultDashboardDisplayer;
     }
 
 }

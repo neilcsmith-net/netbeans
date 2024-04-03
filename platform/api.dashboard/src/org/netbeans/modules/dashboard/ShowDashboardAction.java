@@ -16,7 +16,6 @@
  * specific language governing permissions and limitations
  * under the License.
  */
-
 package org.netbeans.modules.dashboard;
 
 import java.awt.event.ActionEvent;
@@ -24,6 +23,7 @@ import java.awt.event.ActionListener;
 import org.netbeans.api.dashboard.DashboardManager;
 import org.openide.awt.ActionID;
 import org.openide.awt.ActionReference;
+import org.openide.awt.ActionReferences;
 import org.openide.awt.ActionRegistration;
 import org.openide.util.NbBundle.Messages;
 
@@ -32,8 +32,11 @@ import org.openide.util.NbBundle.Messages;
  */
 @ActionID(id = "org.netbeans.modules.dashboard.ShowDashboardAction", category = "Window")
 @ActionRegistration(displayName = "#LBL_Action")
-@ActionReference(path = "Menu/Window",
-        name = "org-netbeans-modules-dashboard-ShowDashboardAction", position = 1400)
+@ActionReferences({
+    @ActionReference(path = "Menu/Window",
+            name = "org-netbeans-modules-dashboard-ShowDashboardAction", position = 1400),
+    @ActionReference(path = "Shortcuts", name = "SO-W")
+})
 @Messages("LBL_Action=Show Dashboard")
 public class ShowDashboardAction implements ActionListener {
 

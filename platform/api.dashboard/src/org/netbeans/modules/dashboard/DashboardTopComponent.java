@@ -19,11 +19,17 @@
 package org.netbeans.modules.dashboard;
 
 import java.util.List;
+import org.netbeans.api.dashboard.DashboardManager;
 import org.netbeans.api.settings.ConvertAsProperties;
 import org.netbeans.spi.dashboard.DashboardDisplayer;
+import org.openide.filesystems.FileObject;
+import org.openide.filesystems.FileUtil;
 import org.openide.windows.TopComponent;
 import org.openide.util.NbBundle.Messages;
+import org.openide.windows.OnShowing;
 import org.openide.windows.WindowManager;
+import org.openide.windows.WindowSystemEvent;
+import org.openide.windows.WindowSystemListener;
 
 /**
  * Default Dashboard Displayer top component.
@@ -34,7 +40,7 @@ import org.openide.windows.WindowManager;
 )
 @TopComponent.Description(
         preferredID = "DashboardDisplayer",
-        persistenceType = TopComponent.PERSISTENCE_NEVER
+        persistenceType = TopComponent.PERSISTENCE_ONLY_OPENED
 )
 @TopComponent.Registration(mode = "editor", openAtStartup = false, position = 0)
 @Messages({
@@ -89,14 +95,14 @@ public final class DashboardTopComponent extends TopComponent {
     private javax.swing.JScrollPane scrollPane;
     // End of variables declaration//GEN-END:variables
     @Override
-    public void componentOpened() {
+    public void componentShowing() {
         if (dashboardPanel != null) {
             dashboardPanel.notifyShowing();
         }
     }
 
     @Override
-    public void componentClosed() {
+    public void componentHidden() {
         if (dashboardPanel != null) {
             dashboardPanel.notifyHidden();
         }
@@ -114,7 +120,8 @@ public final class DashboardTopComponent extends TopComponent {
         // TODO read your settings according to their version
     }
 
-    private void installWidgets(List<DashboardDisplayer.WidgetReference> widgetRefs) {
+    private void installWidgets(DefaultDashboardDisplayer displayer,
+            List<DashboardDisplayer.WidgetReference> widgetRefs) {
         if (this.widgetRefs != null) {
             if (this.widgetRefs.equals(widgetRefs)) {
                 return;
@@ -122,12 +129,14 @@ public final class DashboardTopComponent extends TopComponent {
         }
         this.widgetRefs = List.copyOf(widgetRefs);
         // TODO allow panel to be reconfigured at runtime, and detach removed widgets
-        this.dashboardPanel = new DashboardPanel(DefaultDashboardDisplayer.getInstance(), widgetRefs);
+        this.dashboardPanel = new DashboardPanel(displayer, widgetRefs);
         dashContainer.removeAll();
         dashContainer.add(this.dashboardPanel);
+        dashboardPanel.notifyShowing();
     }
 
-    static void show(List<DashboardDisplayer.WidgetReference> widgetRefs) {
+    static void show(DefaultDashboardDisplayer displayer,
+            List<DashboardDisplayer.WidgetReference> widgetRefs) {
         DashboardTopComponent dashTC = find();
         if (dashTC == null) {
             return;
@@ -136,7 +145,7 @@ public final class DashboardTopComponent extends TopComponent {
             dashTC.close();
             return;
         }
-        dashTC.installWidgets(widgetRefs);
+        dashTC.installWidgets(displayer, widgetRefs);
         if (!dashTC.isOpened()) {
             dashTC.openAtTabPosition(0);
         }
@@ -150,6 +159,64 @@ public final class DashboardTopComponent extends TopComponent {
         } else {
             return null;
         }
+    }
+
+    @OnShowing
+    public static final class Startup implements Runnable {
+
+        @Override
+        public void run() {
+            if (DefaultDashboardDisplayer.isDefaultDisplayer()
+                    && isShowOnStartup()) {
+                WindowManager.getDefault().invokeWhenUIReady(() -> {
+                    DashboardManager.getDefault().show();
+                });
+            } else {
+                DashboardTopComponent tc = find();
+                if (tc != null && tc.isOpened()) {
+                    tc.close();
+                }
+            }
+            WindowManager.getDefault().addWindowSystemListener(new WindowSystemListener() {
+                @Override
+                public void afterLoad(WindowSystemEvent event) {
+                }
+
+                @Override
+                public void afterSave(WindowSystemEvent event) {
+                }
+
+                @Override
+                public void beforeLoad(WindowSystemEvent event) {
+                }
+
+                @Override
+                public void beforeSave(WindowSystemEvent event) {
+                    WindowManager.getDefault().removeWindowSystemListener(this);
+                    DashboardTopComponent tc = find();
+                    if (DefaultDashboardDisplayer.isDefaultDisplayer()
+                            && isShowOnStartup()) {
+                        if (tc != null) {
+                            tc.open();
+                            tc.requestActive();
+                        }
+                    } else {
+                        if (tc != null) {
+                            tc.close();
+                        }
+                    }
+                }
+            });
+        }
+
+        private boolean isShowOnStartup() {
+            FileObject config = FileUtil.getConfigFile("Dashboard/Main");
+            if (config == null) {
+                return false;
+            }
+            return Boolean.TRUE.equals(config.getAttribute("showOnStartup"));
+        }
+
     }
 
 }

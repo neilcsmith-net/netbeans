@@ -20,7 +20,6 @@ package org.netbeans.modules.dashboard;
 
 import java.awt.BorderLayout;
 import java.awt.Color;
-import java.awt.Dimension;
 import java.awt.EventQueue;
 import java.awt.Font;
 import java.awt.GridBagConstraints;
@@ -32,9 +31,6 @@ import javax.swing.BorderFactory;
 import javax.swing.JComponent;
 import javax.swing.JPanel;
 import javax.swing.JScrollPane;
-import javax.swing.JSeparator;
-import javax.swing.JTextArea;
-import javax.swing.UIManager;
 import javax.swing.text.JTextComponent;
 import org.netbeans.spi.dashboard.DashboardDisplayer;
 import org.netbeans.spi.dashboard.DashboardWidget;
@@ -47,7 +43,7 @@ import org.openide.util.Lookup;
 final class WidgetPanel extends JPanel {
 
     private final DashboardDisplayer displayer;
-    private final String id;
+    private final DashboardDisplayer.WidgetReference widgetRef;
     private final DashboardWidget widget;
     private final Accessor accessor;
     private final Color titleColor;
@@ -55,10 +51,10 @@ final class WidgetPanel extends JPanel {
     private String title;
     private List<WidgetElement> elements;
 
-    private WidgetPanel(DashboardDisplayer displayer, String id, DashboardWidget widget) {
+    private WidgetPanel(DashboardDisplayer displayer, DashboardDisplayer.WidgetReference widgetRef) {
         this.displayer = Objects.requireNonNull(displayer);
-        this.id = Objects.requireNonNull(id);
-        this.widget = Objects.requireNonNull(widget);
+        this.widgetRef = Objects.requireNonNull(widgetRef);
+        widget = widgetRef.widget();
         accessor = new Accessor();
         titleColor = null; //UIManager.getColor("controlDkShadow");
 
@@ -74,10 +70,6 @@ final class WidgetPanel extends JPanel {
         reconfigure();
     }
 
-//    TODO : when customization added
-//    void detachWidget() {
-//        widget.detach(accessor);
-//    }
     void notifyShowing() {
         widget.showing(accessor);
     }
@@ -147,18 +139,13 @@ final class WidgetPanel extends JPanel {
     private class Accessor implements DashboardDisplayer.Panel {
 
         @Override
-        public DashboardDisplayer displayer() {
-            return displayer;
-        }
-
-        @Override
         public Lookup getLookup() {
             return displayer.getLookup();
         }
 
         @Override
         public String id() {
-            return id;
+            return widgetRef.id();
         }
 
         @Override
@@ -166,10 +153,15 @@ final class WidgetPanel extends JPanel {
             EventQueue.invokeLater(WidgetPanel.this::reconfigure);
         }
 
+        @Override
+        public DashboardDisplayer.WidgetReference widgetReference() {
+            return widgetRef;
+        }
+
     }
 
     static WidgetPanel create(DashboardDisplayer displayer, DashboardDisplayer.WidgetReference widgetRef) {
-        return new WidgetPanel(displayer, widgetRef.id(), widgetRef.widget());
+        return new WidgetPanel(displayer, widgetRef);
     }
 
 }

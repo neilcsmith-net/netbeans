@@ -28,7 +28,7 @@ import org.netbeans.spi.dashboard.DashboardDisplayer;
 import org.netbeans.spi.dashboard.DashboardWidget;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.Lookup;
+import org.openide.util.lookup.Lookups;
 
 /**
  *
@@ -36,8 +36,6 @@ import org.openide.util.Lookup;
 public final class DashboardManager {
 
     private static final DashboardManager INSTANCE = new DashboardManager();
-
-    private static final String DEFAULT_PATH = "Dashboard/Main";
 
     private List<DashboardDisplayer.WidgetReference> mainWidgets;
     private DashboardDisplayer mainDisplayer;
@@ -57,15 +55,11 @@ public final class DashboardManager {
     }
 
     private static DashboardDisplayer findMainDisplayer() {
-        DashboardDisplayer displayer = Lookup.getDefault().lookup(DashboardDisplayer.class);
-        if (displayer == null) {
-            displayer = DefaultDashboardDisplayer.getInstance();
-        }
-        return displayer;
+        return DefaultDashboardDisplayer.findOrDefault();
     }
 
     private static List<DashboardDisplayer.WidgetReference> findMainWidgets() {
-        FileObject folder = FileUtil.getConfigFile(DEFAULT_PATH);
+        FileObject folder = FileUtil.getConfigFile("Dashboard/Main");
         if (folder == null) {
             return List.of();
         }
@@ -74,10 +68,10 @@ public final class DashboardManager {
         List<DashboardDisplayer.WidgetReference> widgetRefs = new ArrayList<>();
 
         for (FileObject file : files) {
-            String id = file.getName();
+            String id = "Main/" + file.getName();
             DashboardWidget widget = FileUtil.getConfigObject(file.getPath(), DashboardWidget.class);
             if (widget != null) {
-                widgetRefs.add(new DashboardDisplayer.WidgetReference(id, widget));
+                widgetRefs.add(new DashboardDisplayer.WidgetReference(id, widget, Lookups.singleton(file)));
             }
         }
 

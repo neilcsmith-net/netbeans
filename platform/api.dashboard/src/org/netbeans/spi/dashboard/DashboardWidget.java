@@ -32,13 +32,13 @@ public interface DashboardWidget {
     public default void attach(DashboardDisplayer.Panel panel) {
     }
 
-    public default void detach(DashboardDisplayer.Panel panel) {
-    }
-    
     public default void showing(DashboardDisplayer.Panel panel) {
     }
 
     public default void hidden(DashboardDisplayer.Panel panel) {
     }
-    
+
+    public default void removed(String id) {
+    }
+
 }
