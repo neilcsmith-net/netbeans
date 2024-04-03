@@ -28,10 +28,12 @@ import org.netbeans.spi.dashboard.DashboardDisplayer;
 import org.netbeans.spi.dashboard.DashboardWidget;
 import org.openide.filesystems.FileObject;
 import org.openide.filesystems.FileUtil;
-import org.openide.util.lookup.Lookups;
 
 /**
- *
+ * Provides API access to control the dashboard.
+ * <p>
+ * Currently only provides support to load and display the main dashboard panel
+ * with widgets registered in {@code Dashboard/Main}.
  */
 public final class DashboardManager {
 
@@ -40,6 +42,9 @@ public final class DashboardManager {
     private List<DashboardDisplayer.WidgetReference> mainWidgets;
     private DashboardDisplayer mainDisplayer;
 
+    /**
+     * Show the main widget dashboard.
+     */
     public void show() {
         if (!EventQueue.isDispatchThread()) {
             EventQueue.invokeLater(this::show);
@@ -71,13 +76,18 @@ public final class DashboardManager {
             String id = "Main/" + file.getName();
             DashboardWidget widget = FileUtil.getConfigObject(file.getPath(), DashboardWidget.class);
             if (widget != null) {
-                widgetRefs.add(new DashboardDisplayer.WidgetReference(id, widget, Lookups.singleton(file)));
+                widgetRefs.add(new DashboardDisplayer.WidgetReference(id, widget, file));
             }
         }
 
         return List.copyOf(widgetRefs);
     }
 
+    /**
+     * Acquire the default dashboard manager.
+     *
+     * @return default dashboard manager
+     */
     public static DashboardManager getDefault() {
         return INSTANCE;
     }
